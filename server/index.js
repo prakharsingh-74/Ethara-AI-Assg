@@ -4,11 +4,9 @@ import dotenv from "dotenv";
 import express from "express";
 import { errorHandler, routeNotFound } from "./middleware/errorMiddleware.js";
 import routes from "./routes/index.js";
-import dbConnection from "./utils/connectDB.js";
+import { testSupabaseConnection } from "./utils/supabase.js";
 
 dotenv.config();
-
-dbConnection();
 
 const port = process.env.PORT || 5000;
 
@@ -32,4 +30,7 @@ app.use("/api", routes);
 app.use(routeNotFound);
 app.use(errorHandler);
 
-app.listen(port, () => console.log(`Server listening on ${port}`));
+app.listen(port, () => {
+  console.log(`Server listening on ${port}`);
+  testSupabaseConnection();
+});

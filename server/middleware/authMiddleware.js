@@ -1,6 +1,6 @@
 import asyncHandler from "express-async-handler";
 import jwt from "jsonwebtoken";
-import User from "../models/userModel.js";
+import { supabase } from "../utils/supabase.js";
 
 const protectRoute = asyncHandler(async (req, res, next) => {
   let token = req.cookies.token;
@@ -9,13 +9,17 @@ const protectRoute = asyncHandler(async (req, res, next) => {
     try {
       const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
 
-      const resp = await User.findById(decodedToken.userId).select(
-        "isAdmin email"
-      );
+      const { data: resp, error } = await supabase
+        .from("users")
+        .select("is_admin, email")
+        .eq("_id", decodedToken.userId)
+        .single();
+
+      if (error || !resp) throw new Error("User not found");
 
       req.user = {
         email: resp.email,
-        isAdmin: resp.isAdmin,
+        isAdmin: resp.is_admin,
         userId: decodedToken.userId,
       };
 

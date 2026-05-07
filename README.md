@@ -1,6 +1,6 @@
 
 # Overview
-The Cloud-Based Task Manager is a web application designed to streamline team task management. Built using the MERN stack (MongoDB, Express.js, React, and Node.js), this platform provides a user-friendly interface for efficient task assignment, tracking, and collaboration. The application caters to administrators and regular users, offering comprehensive features to enhance productivity and organization.
+The Cloud-Based Task Manager is a web application designed to streamline team task management. Built using the PERN/SERN stack (Supabase/PostgreSQL, Express.js, React, and Node.js), this platform provides a user-friendly interface for efficient task assignment, tracking, and collaboration. The application caters to administrators and regular users, offering comprehensive features to enhance productivity and organization.
 
 
 
@@ -10,7 +10,7 @@ In a dynamic work environment, effective task management is crucial for team suc
 
 
 ### **Background**:
-With the rise of remote work and dispersed teams, there is a growing need for tools that facilitate effective communication and task coordination. The Cloud-Based Task Manager addresses this need by leveraging modern web technologies to create an intuitive and responsive task management solution. The MERN stack ensures scalability, while the integration of Redux Toolkit, Headless UI, and Tailwind CSS enhances user experience and performance.
+With the rise of remote work and dispersed teams, there is a growing need for tools that facilitate effective communication and task coordination. The Cloud-Based Task Manager addresses this need by leveraging modern web technologies to create an intuitive and responsive task management solution. The PERN stack ensures scalability, while the integration of Redux Toolkit, Headless UI, and Tailwind CSS enhances user experience and performance.
 
 
 ### 
@@ -75,10 +75,10 @@ With the rise of remote work and dispersed teams, there is a growing need for to
     - Node.js with Express.js
     
 - **Database:**
-    - MongoDB for efficient and scalable data storage.
+    - PostgreSQL (via Supabase) for efficient, relational, and scalable data storage.
 
 
-The Cloud-Based Task Manager is an innovative solution that brings efficiency and organization to task management within teams. By harnessing the power of the MERN stack and modern frontend technologies, the platform provides a seamless experience for both administrators and users, fostering collaboration and productivity.
+The Cloud-Based Task Manager is an innovative solution that brings efficiency and organization to task management within teams. By harnessing the power of the PERN stack and modern frontend technologies, the platform provides a seamless experience for both administrators and users, fostering collaboration and productivity.
 
 &nbsp;
 
@@ -90,7 +90,8 @@ The Cloud-Based Task Manager is an innovative solution that brings efficiency an
 ## Environment variables
 First, create the environment variables file `.env` in the server folder. The `.env` file contains the following environment variables:
 
-- MONGODB_URI = `your MongoDB URL`
+- SUPABASE_URL = `your Supabase Project URL`
+- SUPABASE_KEY = `your Supabase API Key (Anon or Service Role)`
 - JWT_SECRET = `any secret key - must be secured`
 - PORT = `8800` or any port number
 - NODE_ENV = `development`
@@ -102,39 +103,30 @@ First, create the environment variables file `.env` in the server folder. The `.
 
 - `controllers/`: Contains the business logic and route handler functions.
 - `middleware/`: Custom middleware for route protection (authentication, admin checks) and error handling.
-- `models/`: Mongoose schemas and models (`User`, `Task`, `Notice`).
 - `routes/`: Express routers defining the application endpoints.
-- `utils/`: Utility functions like database connection establishment.
+- `utils/`: Utility functions like `supabase.js` client setup.
 
-## Set Up MongoDB:
+## Set Up Supabase (PostgreSQL):
 
-1. Setting up MongoDB involves a few steps:
-    - Visit MongoDB Atlas Website
-        - Go to the MongoDB Atlas website: [https://www.mongodb.com/cloud/atlas](https://www.mongodb.com/cloud/atlas).
+1. Setting up Supabase involves a few steps:
+    - Visit the Supabase Website: [https://supabase.com/](https://supabase.com/).
+    - Create an Account or Log In.
+    - Create a New Project.
+    - Wait for the project database to spin up.
+    - Go to project Settings > API to get your `SUPABASE_URL` and `SUPABASE_KEY`.
+    - Go to the **SQL Editor** in your Supabase dashboard.
+    - Open the `server/schema.sql` file provided in this repository, copy its contents, and execute it in the Supabase SQL Editor. This will automatically create all necessary tables (`users`, `tasks`, `notices`) with the required structure.
 
-    - Create an Account
-    - Log in to your MongoDB Atlas account.
-    - Create a New Cluster
-    - Choose a Cloud Provider and Region
-    - Configure Cluster Settings
-    - Create Cluster
-    - Wait for Cluster to Deploy
-    - Create Database User
-    - Set Up IP Whitelist
-    - Connect to Cluster
-    - Configure Your Application
-    - Test the Connection
-
-2. Create a new database and configure the `.env` file with the MongoDB connection URL. 
+2. Configure the `server/.env` file with your new Supabase Project URL and API Key. 
 
 ## Steps to run server
 
 1. Open the project in any editor of choice.
 2. Navigate into the server directory `cd server`.
 3. Run `npm i` or `npm install` to install the packages.
-4. Run `npm start` to start the server.
+4. Run `npm run dev` to start the server.
 
-If configured correctly, you should see a message indicating that the server is running successfully and `Database Connected`.
+If configured correctly, you should see a message indicating that the server is listening on your configured port.
 
 ## API Documentation
 
