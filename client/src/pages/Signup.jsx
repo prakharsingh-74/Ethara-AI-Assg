@@ -21,7 +21,7 @@ const Signup = () => {
 
   const handleSignup = async (data) => {
     try {
-      const res = await registerUser({ ...data, isAdmin: data.isAdmin }).unwrap();
+      const res = await registerUser({ ...data, title: data.role || "User", isAdmin: data.isAdmin }).unwrap();
 
       // Dispatch setCredentials to log them in directly after successful registration
       dispatch(setCredentials(res));
@@ -79,17 +79,7 @@ const Signup = () => {
                 })}
                 error={errors.name ? errors.name.message : ""}
               />
-              <Textbox
-                placeholder='Developer'
-                type='text'
-                name='title'
-                label='Job Title'
-                className='w-full rounded-full'
-                register={register("title", {
-                  required: "Job title is required!",
-                })}
-                error={errors.title ? errors.title.message : ""}
-              />
+
               <Textbox
                 placeholder='Software Engineer'
                 type='text'

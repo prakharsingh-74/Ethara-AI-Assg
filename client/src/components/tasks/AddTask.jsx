@@ -1,10 +1,4 @@
 import { Dialog } from "@headlessui/react";
-import {
-  getDownloadURL,
-  getStorage,
-  ref,
-  uploadBytesResumable,
-} from "firebase/storage";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { BiImages } from "react-icons/bi";
@@ -15,7 +9,7 @@ import {
   useUpdateTaskMutation,
 } from "../../redux/slices/api/taskApiSlice";
 import { dateFormatter } from "../../utils";
-import { app } from "../../utils/firebase";
+import { supabase } from "../../utils/supabase";
 import Button from "../Button";
 import Loading from "../Loading";
 import ModalWrapper from "../ModalWrapper";
@@ -29,33 +23,29 @@ const PRIORIRY = ["HIGH", "MEDIUM", "NORMAL", "LOW"];
 const uploadedFileURLs = [];
 
 const uploadFile = async (file) => {
-  const storage = getStorage(app);
+  const name = new Date().getTime() + "-" + file.name;
 
-  const name = new Date().getTime() + file.name;
-  const storageRef = ref(storage, name);
+  return new Promise(async (resolve, reject) => {
+    try {
+      // Note: Make sure you have created a public storage bucket named 'task-assets' in your Supabase dashboard!
+      const { data, error } = await supabase.storage
+        .from('Assets')
+        .upload(name, file);
 
-  const uploadTask = uploadBytesResumable(storageRef, file);
-
-  return new Promise((resolve, reject) => {
-    uploadTask.on(
-      "state_changed",
-      (snapshot) => {
-        console.log("Uploading");
-      },
-      (error) => {
-        reject(error);
-      },
-      () => {
-        getDownloadURL(uploadTask.snapshot.ref)
-          .then((downloadURL) => {
-            uploadedFileURLs.push(downloadURL);
-            resolve();
-          })
-          .catch((error) => {
-            reject(error);
-          });
+      if (error) {
+        throw error;
       }
-    );
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('Assets')
+        .getPublicUrl(name);
+
+      uploadedFileURLs.push(publicUrl);
+      resolve();
+    } catch (error) {
+      console.error("Supabase upload error:", error);
+      reject(error);
+    }
   });
 };
 
