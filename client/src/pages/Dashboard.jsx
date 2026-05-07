@@ -43,7 +43,7 @@ const Dashboard = () => {
     window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
   }, []);
 
-  const totals = data?.tasks || [];
+  const totals = data?.tasks || {};
 
   if (isLoading)
     return (
@@ -154,7 +154,7 @@ const UserTable = ({ users }) => {
         <TableHeader />
         <tbody>
           {users?.map((user, index) => (
-            <TableRow key={index + user?._id} user={user} />
+            <TableRow key={index + (user?._id || index)} user={user} />
           ))}
         </tbody>
       </table>
@@ -238,7 +238,7 @@ const TaskTable = ({ tasks }) => {
         <table className='w-full '>
           <TableHeader />
           <tbody className=''>
-            {tasks.map((task, id) => (
+            {tasks?.map((task, id) => (
               <TableRow key={task?._id + id} task={task} />
             ))}
           </tbody>
