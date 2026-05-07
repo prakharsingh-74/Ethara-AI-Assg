@@ -72,7 +72,7 @@ const registerUser = asyncHandler(async (req, res) => {
     .single();
 
   if (user) {
-    isAdmin ? createJWT(res, user._id) : null;
+    createJWT(res, user._id);
     user.password = undefined;
     res.status(201).json({ ...user, isAdmin: user.is_admin, isActive: user.is_active });
   } else {

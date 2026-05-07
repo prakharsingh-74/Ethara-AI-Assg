@@ -4,7 +4,6 @@ import { supabase } from "../utils/supabase.js";
 
 const protectRoute = asyncHandler(async (req, res, next) => {
   let token = req.cookies?.token;
-  console.log("Token received:", token);
 
   if (token) {
     try {

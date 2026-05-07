@@ -1,6 +1,7 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
-const API_URL = import.meta.env.VITE_APP_BASE_URL.includes("localhost") ? "/api" : import.meta.env.VITE_APP_BASE_URL + "/api";
+// Force proxy for local development to bypass any browser cache or env issues
+const API_URL = "/api";
 
 const baseQuery = fetchBaseQuery({ baseUrl: API_URL });
 
