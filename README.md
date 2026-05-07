@@ -22,58 +22,36 @@ Each user should have a role (Admin or Member), and tasks should be manageable w
 
 ## High-Level Architecture
 
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                          CLIENT (React + Vite)                      │
-│                        http://localhost:3000                         │
-│                                                                     │
-│  ┌──────────┐  ┌────────────┐  ┌───────────┐  ┌─────────────────┐  │
-│  │  Pages   │  │ Components │  │   Redux   │  │ Supabase Client │  │
-│  │ Login    │  │ Sidebar    │  │  Toolkit  │  │  (Storage Only) │  │
-│  │ Signup   │  │ AddTask    │  │  + RTK    │  │  Image Uploads  │  │
-│  │ Dashboard│  │ TaskCard   │  │  Query    │  │  to "Assets"    │  │
-│  │ Tasks    │  │ UserList   │  │           │  │  Bucket         │  │
-│  │ Trash    │  │ Navbar     │  │           │  │                 │  │
-│  └──────────┘  └────────────┘  └─────┬─────┘  └────────┬────────┘  │
-│                                      │                  │           │
-└──────────────────────────────────────┼──────────────────┼───────────┘
-                                       │                  │
-                          REST API Calls│      Direct File │
-                         (via Vite Proxy)       Upload     │
-                                       │                  │
-┌──────────────────────────────────────┼──────────────────┼───────────┐
-│                          SERVER (Node.js + Express)     │           │
-│                        http://localhost:8800             │           │
-│                                                         │           │
-│  ┌──────────┐  ┌────────────────┐  ┌──────────────┐    │           │
-│  │  Routes  │  │  Controllers   │  │  Middleware   │    │           │
-│  │ /user    │──│ userController │  │ protectRoute  │    │           │
-│  │ /task    │  │ taskController │  │ isAdminRoute  │    │           │
-│  └──────────┘  └───────┬────────┘  │ cookieParser  │    │           │
-│                        │           │ errorHandler  │    │           │
-│                        │           └──────────────┘    │           │
-│                        │                                │           │
-│              ┌─────────▼──────────┐                     │           │
-│              │  Supabase JS SDK   │                     │           │
-│              │  (Database Client) │                     │           │
-│              └─────────┬──────────┘                     │           │
-│                        │                                │           │
-└────────────────────────┼────────────────────────────────┼───────────┘
-                         │                                │
-                         ▼                                ▼
-              ┌──────────────────────────────────────────────────────┐
-              │                  SUPABASE CLOUD                      │
-              │                                                      │
-              │  ┌──────────────────┐    ┌────────────────────────┐  │
-              │  │    PostgreSQL    │    │    Supabase Storage    │  │
-              │  │                  │    │                        │  │
-              │  │  Tables:        │    │  Bucket: "Assets"      │  │
-              │  │  • users        │    │  (Task image uploads)  │  │
-              │  │  • tasks        │    │                        │  │
-              │  │  • notices      │    │                        │  │
-              │  └──────────────────┘    └────────────────────────┘  │
-              │                                                      │
-              └──────────────────────────────────────────────────────┘
+```mermaid
+flowchart TB
+    subgraph CLIENT["CLIENT — React + Vite :3000"]
+        direction TB
+        Pages["Pages\nLogin | Signup | Dashboard\nTasks | Trash | Users"]
+        Components["Components\nSidebar | Navbar | AddTask\nTaskCard | UserList"]
+        Redux["Redux Toolkit\n+ RTK Query"]
+        SupaClient["Supabase Client\nStorage Only"]
+    end
+
+    subgraph SERVER["SERVER — Node.js + Express :8800"]
+        direction TB
+        Routes["Routes\n/api/user | /api/task"]
+        Controllers["Controllers\nuserController | taskController"]
+        Middleware["Middleware\nprotectRoute | isAdminRoute\ncookieParser | errorHandler"]
+        SupaSDK["Supabase JS SDK\nDatabase Client"]
+        Routes --> Controllers
+        Controllers --> SupaSDK
+        Middleware --> Controllers
+    end
+
+    subgraph SUPABASE["SUPABASE CLOUD"]
+        direction LR
+        Postgres[("PostgreSQL\nusers | tasks | notices")]
+        Storage[("Supabase Storage\nBucket: Assets")]
+    end
+
+    Redux -- "REST API Calls via Vite Proxy" --> Routes
+    SupaClient -- "Direct File Upload" --> Storage
+    SupaSDK -- "Database Queries" --> Postgres
 ```
 
 ---
@@ -82,41 +60,24 @@ Each user should have a role (Admin or Member), and tasks should be manageable w
 
 ### 1. User Registration & Login Flow
 
-```
-┌────────┐          ┌─────────────┐          ┌──────────┐          ┌──────────┐
-│ Browser│          │ React Client│          │  Express  │          │ Supabase │
-│        │          │ (Redux/RTK) │          │  Server   │          │ Postgres │
-└───┬────┘          └──────┬──────┘          └────┬─────┘          └────┬─────┘
-    │  Fill signup form    │                      │                     │
-    │─────────────────────>│                      │                     │
-    │                      │ POST /api/user/      │                     │
-    │                      │     register         │                     │
-    │                      │─────────────────────>│                     │
-    │                      │                      │ Check if email      │
-    │                      │                      │ exists              │
-    │                      │                      │────────────────────>│
-    │                      │                      │  { data: null }     │
-    │                      │                      │<────────────────────│
-    │                      │                      │                     │
-    │                      │                      │ Hash password       │
-    │                      │                      │ (bcryptjs)          │
-    │                      │                      │                     │
-    │                      │                      │ INSERT new user     │
-    │                      │                      │────────────────────>│
-    │                      │                      │  { data: user }     │
-    │                      │                      │<────────────────────│
-    │                      │                      │                     │
-    │                      │                      │ Sign JWT token      │
-    │                      │                      │ Set HttpOnly cookie │
-    │                      │  200 OK + user data  │                     │
-    │                      │  + Set-Cookie: token  │                     │
-    │                      │<─────────────────────│                     │
-    │                      │                      │                     │
-    │                      │ dispatch(             │                     │
-    │                      │  setCredentials(user))│                     │
-    │  Redirect to /       │                      │                     │
-    │<─────────────────────│                      │                     │
-    │                      │                      │                     │
+```mermaid
+sequenceDiagram
+    actor User as Browser
+    participant Client as React Client / Redux
+    participant Server as Express Server
+    participant DB as Supabase PostgreSQL
+
+    User->>Client: Fill signup form and submit
+    Client->>Server: POST /api/user/register
+    Server->>DB: SELECT * FROM users WHERE email = ?
+    DB-->>Server: null - no existing user
+    Server->>Server: Hash password with bcryptjs
+    Server->>DB: INSERT INTO users
+    DB-->>Server: new user object
+    Server->>Server: Sign JWT token
+    Server-->>Client: 201 + Set-Cookie token HttpOnly
+    Client->>Client: dispatch setCredentials
+    Client-->>User: Redirect to /dashboard
 ```
 
 ### 2. Create Task Flow (Admin Only)
