@@ -7,8 +7,8 @@ const createJWT = (res, userId) => {
 
   res.cookie("token", token, {
     httpOnly: true,
-    secure: false,
-    sameSite: "strict",
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
     path: "/", // IMPORTANT: Send cookie for ALL routes, not just the login path
     maxAge: 1 * 24 * 60 * 60 * 1000, // 1 day
   });
