@@ -1,199 +1,526 @@
+# Ethara AI Assignment
 
-# Overview
-The Cloud-Based Task Manager is a web application designed to streamline team task management. Built using the PERN/SERN stack (Supabase/PostgreSQL, Express.js, React, and Node.js), this platform provides a user-friendly interface for efficient task assignment, tracking, and collaboration. The application caters to administrators and regular users, offering comprehensive features to enhance productivity and organization.
+A Team Task Management Web Application where users can create and join projects, assign tasks, and track progress.
 
-
-
-### Why/Problem?
-In a dynamic work environment, effective task management is crucial for team success. Traditional methods of task tracking through spreadsheets or manual systems can be cumbersome and prone to errors. The Cloud-Based Task Manager aims to address these challenges by providing a centralized platform for task management, enabling seamless collaboration and improved workflow efficiency.
+Each user should have a role (Admin or Member), and tasks should be manageable within teams.
 
 
-
-### **Background**:
-With the rise of remote work and dispersed teams, there is a growing need for tools that facilitate effective communication and task coordination. The Cloud-Based Task Manager addresses this need by leveraging modern web technologies to create an intuitive and responsive task management solution. The PERN stack ensures scalability, while the integration of Redux Toolkit, Headless UI, and Tailwind CSS enhances user experience and performance.
-
-
-### 
-## **Admin Features:**
-1. **User Management:**
-    - Create admin accounts.
-    - Add and manage team members.
-
-2. **Task Assignment:**
-    - Assign tasks to individual or multiple users.
-    - Update task details and status.
-
-3. **Task Properties:**
-    - Label tasks as todo, in progress, or completed.
-    - Assign priority levels (high, medium, normal, low).
-    - Add and manage sub-tasks.
-
-4. **Asset Management:**
-    - Upload task assets, such as images.
-
-5. **User Account Control:**
-    - Disable or activate user accounts.
-    - Permanently delete or trash tasks.
-
-
-## **User Features:**
-1. **Task Interaction:**
-    - Change task status (in progress or completed).
-    - View detailed task information.
-
-2. **Communication:**
-    - Add comments or chat to task activities.
-
-
-## **General Features:**
-1. **Authentication and Authorization:**
-    - User login with secure authentication.
-    - Role-based access control.
-
-2. **Profile Management:**
-    - Update user profiles.
-
-3. **Password Management:**
-    - Change passwords securely.
-
-4. **Dashboard:**
-    - Provide a summary of user activities.
-    - Filter tasks into todo, in progress, or completed.
-
-
-
-
-## **Technologies Used:**
-- **Frontend:**
-    - React (Vite)
-    - Redux Toolkit for State Management
-    - Headless UI
-    - Tailwind CSS
-
-
-- **Backend:**
-    - Node.js with Express.js
-    
-- **Database:**
-    - PostgreSQL (via Supabase) for efficient, relational, and scalable data storage.
-
-
-The Cloud-Based Task Manager is an innovative solution that brings efficiency and organization to task management within teams. By harnessing the power of the PERN stack and modern frontend technologies, the platform provides a seamless experience for both administrators and users, fostering collaboration and productivity.
-
-&nbsp;
-
-## SETUP INSTRUCTIONS
-
-
-# Server Setup
-
-## Environment variables
-First, create the environment variables file `.env` in the server folder. The `.env` file contains the following environment variables:
-
-- SUPABASE_URL = `your Supabase Project URL`
-- SUPABASE_KEY = `your Supabase API Key (Anon or Service Role)`
-- JWT_SECRET = `any secret key - must be secured`
-- PORT = `8800` or any port number
-- NODE_ENV = `development`
-
-
-&nbsp;
-
-## Folder Structure
-
-- `controllers/`: Contains the business logic and route handler functions.
-- `middleware/`: Custom middleware for route protection (authentication, admin checks) and error handling.
-- `routes/`: Express routers defining the application endpoints.
-- `utils/`: Utility functions like `supabase.js` client setup.
-
-## Set Up Supabase (PostgreSQL):
-
-1. Setting up Supabase involves a few steps:
-    - Visit the Supabase Website: [https://supabase.com/](https://supabase.com/).
-    - Create an Account or Log In.
-    - Create a New Project.
-    - Wait for the project database to spin up.
-    - Go to project Settings > API to get your `SUPABASE_URL` and `SUPABASE_KEY`.
-    - Go to the **SQL Editor** in your Supabase dashboard.
-    - Open the `server/schema.sql` file provided in this repository, copy its contents, and execute it in the Supabase SQL Editor. This will automatically create all necessary tables (`users`, `tasks`, `notices`) with the required structure.
-
-2. Configure the `server/.env` file with your new Supabase Project URL and API Key. 
-
-## Steps to run server
-
-1. Open the project in any editor of choice.
-2. Navigate into the server directory `cd server`.
-3. Run `npm i` or `npm install` to install the packages.
-4. Run `npm run dev` to start the server.
-
-If configured correctly, you should see a message indicating that the server is listening on your configured port.
-
-## API Documentation
-
-The server exposes the following endpoints. The base URL for all endpoints is `/api`.
-
-### Authentication and Authorization
-
-- **`protectRoute`**: Middleware that ensures a user is logged in by verifying the JWT cookie.
-- **`isAdminRoute`**: Middleware that ensures the authenticated user has Admin privileges.
-
-### User Routes (`/api/user`)
-
-| Method | Endpoint | Description | Access |
-| :--- | :--- | :--- | :--- |
-| `POST` | `/register` | Register a new user | Public |
-| `POST` | `/login` | Authenticate user and issue JWT | Public |
-| `POST` | `/logout` | Logout user (clears JWT cookie) | Public |
-| `GET` | `/get-team` | Get a list of all team members | **Admin** |
-| `GET` | `/notifications` | Get the logged-in user's notifications | Private |
-| `GET` | `/get-status` | Get user task status statistics | **Admin** |
-| `PUT` | `/profile` | Update the logged-in user's profile | Private |
-| `PUT` | `/read-noti` | Mark notifications as read | Private |
-| `PUT` | `/change-password` | Change the logged-in user's password | Private |
-| `PUT` | `/:id` | Activate/Deactivate a user profile | **Admin** |
-| `DELETE` | `/:id` | Delete a user profile | **Admin** |
-
-### Task Routes (`/api/task`)
-
-| Method | Endpoint | Description | Access |
-| :--- | :--- | :--- | :--- |
-| `POST` | `/create` | Create a new task | **Admin** |
-| `POST` | `/duplicate/:id` | Duplicate an existing task | **Admin** |
-| `POST` | `/activity/:id` | Post a new activity/comment to a task | Private |
-| `GET` | `/dashboard` | Get dashboard statistics (task counts by status, priority) | Private |
-| `GET` | `/` | Get a paginated and filtered list of tasks | Private |
-| `GET` | `/:id` | Get details of a specific task | Private |
-| `PUT` | `/create-subtask/:id` | Add a subtask to an existing task | **Admin** |
-| `PUT` | `/update/:id` | Update task details | **Admin** |
-| `PUT` | `/change-stage/:id` | Change the stage of a task (e.g., todo, in progress, completed) | Private |
-| `PUT` | `/change-status/:taskId/:subTaskId` | Toggle the completion status of a subtask | Private |
-| `PUT` | `/:id` | Move a task to the trash | **Admin** |
-| `DELETE` | `/delete-restore/:id?` | Permanently delete or restore trashed tasks | **Admin** |
 
 ---
 
-## Data Models
+## Table of Contents
 
-### User Model
-Stores user details including `name`, `title`, `role`, `email`, `password` (hashed with `bcryptjs`), `isAdmin` flag, `isActive` flag, and a reference to assigned `tasks`.
+- [High-Level Architecture](#high-level-architecture)
+- [Sequence Diagrams](#sequence-diagrams)
+- [API Documentation](#api-documentation)
+- [Database Schema](#database-schema)
+- [Project Setup](#project-setup)
+- [Folder Structure](#folder-structure)
+- [Technologies Used](#technologies-used)
 
-### Task Model
-Stores task information such as `title`, `priority` (high, medium, normal, low), `stage` (todo, in progress, completed), `activities` (comments/logs), `subTasks`, `description`, `team` assignments, and an `isTrashed` flag.
+---
 
-&nbsp;
+## High-Level Architecture
 
-# Client Side Setup
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                          CLIENT (React + Vite)                      │
+│                        http://localhost:3000                         │
+│                                                                     │
+│  ┌──────────┐  ┌────────────┐  ┌───────────┐  ┌─────────────────┐  │
+│  │  Pages   │  │ Components │  │   Redux   │  │ Supabase Client │  │
+│  │ Login    │  │ Sidebar    │  │  Toolkit  │  │  (Storage Only) │  │
+│  │ Signup   │  │ AddTask    │  │  + RTK    │  │  Image Uploads  │  │
+│  │ Dashboard│  │ TaskCard   │  │  Query    │  │  to "Assets"    │  │
+│  │ Tasks    │  │ UserList   │  │           │  │  Bucket         │  │
+│  │ Trash    │  │ Navbar     │  │           │  │                 │  │
+│  └──────────┘  └────────────┘  └─────┬─────┘  └────────┬────────┘  │
+│                                      │                  │           │
+└──────────────────────────────────────┼──────────────────┼───────────┘
+                                       │                  │
+                          REST API Calls│      Direct File │
+                         (via Vite Proxy)       Upload     │
+                                       │                  │
+┌──────────────────────────────────────┼──────────────────┼───────────┐
+│                          SERVER (Node.js + Express)     │           │
+│                        http://localhost:8800             │           │
+│                                                         │           │
+│  ┌──────────┐  ┌────────────────┐  ┌──────────────┐    │           │
+│  │  Routes  │  │  Controllers   │  │  Middleware   │    │           │
+│  │ /user    │──│ userController │  │ protectRoute  │    │           │
+│  │ /task    │  │ taskController │  │ isAdminRoute  │    │           │
+│  └──────────┘  └───────┬────────┘  │ cookieParser  │    │           │
+│                        │           │ errorHandler  │    │           │
+│                        │           └──────────────┘    │           │
+│                        │                                │           │
+│              ┌─────────▼──────────┐                     │           │
+│              │  Supabase JS SDK   │                     │           │
+│              │  (Database Client) │                     │           │
+│              └─────────┬──────────┘                     │           │
+│                        │                                │           │
+└────────────────────────┼────────────────────────────────┼───────────┘
+                         │                                │
+                         ▼                                ▼
+              ┌──────────────────────────────────────────────────────┐
+              │                  SUPABASE CLOUD                      │
+              │                                                      │
+              │  ┌──────────────────┐    ┌────────────────────────┐  │
+              │  │    PostgreSQL    │    │    Supabase Storage    │  │
+              │  │                  │    │                        │  │
+              │  │  Tables:        │    │  Bucket: "Assets"      │  │
+              │  │  • users        │    │  (Task image uploads)  │  │
+              │  │  • tasks        │    │                        │  │
+              │  │  • notices      │    │                        │  │
+              │  └──────────────────┘    └────────────────────────┘  │
+              │                                                      │
+              └──────────────────────────────────────────────────────┘
+```
 
-## Environment variables
-First, create the environment variables file `.env` in the client folder. The `.env` file contains the following environment variables:
+---
 
-- VITE_APP_BASE_URL = `http://localhost:8800` #Note: Change the port 8800 to your port number.
-- VITE_APP_FIREBASE_API_KEY = `Firebase api key`
+## Sequence Diagrams
 
-## Steps to run client
+### 1. User Registration & Login Flow
 
-1. Navigate into the client directory `cd client`.
-2. Run `npm i` or `npm install` to install the packages.
-3. Run `npm start` to run the app on `http://localhost:3000`.
-4. Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+```
+┌────────┐          ┌─────────────┐          ┌──────────┐          ┌──────────┐
+│ Browser│          │ React Client│          │  Express  │          │ Supabase │
+│        │          │ (Redux/RTK) │          │  Server   │          │ Postgres │
+└───┬────┘          └──────┬──────┘          └────┬─────┘          └────┬─────┘
+    │  Fill signup form    │                      │                     │
+    │─────────────────────>│                      │                     │
+    │                      │ POST /api/user/      │                     │
+    │                      │     register         │                     │
+    │                      │─────────────────────>│                     │
+    │                      │                      │ Check if email      │
+    │                      │                      │ exists              │
+    │                      │                      │────────────────────>│
+    │                      │                      │  { data: null }     │
+    │                      │                      │<────────────────────│
+    │                      │                      │                     │
+    │                      │                      │ Hash password       │
+    │                      │                      │ (bcryptjs)          │
+    │                      │                      │                     │
+    │                      │                      │ INSERT new user     │
+    │                      │                      │────────────────────>│
+    │                      │                      │  { data: user }     │
+    │                      │                      │<────────────────────│
+    │                      │                      │                     │
+    │                      │                      │ Sign JWT token      │
+    │                      │                      │ Set HttpOnly cookie │
+    │                      │  200 OK + user data  │                     │
+    │                      │  + Set-Cookie: token  │                     │
+    │                      │<─────────────────────│                     │
+    │                      │                      │                     │
+    │                      │ dispatch(             │                     │
+    │                      │  setCredentials(user))│                     │
+    │  Redirect to /       │                      │                     │
+    │<─────────────────────│                      │                     │
+    │                      │                      │                     │
+```
 
+### 2. Create Task Flow (Admin Only)
+
+```
+┌────────┐          ┌─────────────┐          ┌──────────┐          ┌──────────┐
+│ Browser│          │ React Client│          │  Express  │          │ Supabase │
+│        │          │ (Redux/RTK) │          │  Server   │          │ Postgres │
+└───┬────┘          └──────┬──────┘          └────┬─────┘          └────┬─────┘
+    │  Click "Create Task" │                      │                     │
+    │  Fill form + Submit  │                      │                     │
+    │─────────────────────>│                      │                     │
+    │                      │                      │                     │
+    │                      │ (If images attached) │                     │
+    │                      │ Upload to Supabase   │                     │
+    │                      │ Storage "Assets"     │                     │
+    │                      │ bucket               │                     │
+    │                      │──────────────────────────────────────────>│
+    │                      │  { publicUrl }        │                    │
+    │                      │<─────────────────────────────────────────│
+    │                      │                      │                     │
+    │                      │ POST /api/task/create │                     │
+    │                      │ + Cookie: token       │                     │
+    │                      │─────────────────────>│                     │
+    │                      │                      │                     │
+    │                      │                      │── protectRoute ──>  │
+    │                      │                      │   Verify JWT        │
+    │                      │                      │   Fetch user from DB│
+    │                      │                      │────────────────────>│
+    │                      │                      │<────────────────────│
+    │                      │                      │                     │
+    │                      │                      │── isAdminRoute ──>  │
+    │                      │                      │   Check isAdmin     │
+    │                      │                      │                     │
+    │                      │                      │ INSERT task         │
+    │                      │                      │────────────────────>│
+    │                      │                      │ { data: task }      │
+    │                      │                      │<────────────────────│
+    │                      │                      │                     │
+    │                      │                      │ INSERT notice       │
+    │                      │                      │────────────────────>│
+    │                      │                      │<────────────────────│
+    │                      │                      │                     │
+    │                      │                      │ UPDATE user.tasks[] │
+    │                      │                      │ (for each team      │
+    │                      │                      │  member)            │
+    │                      │                      │────────────────────>│
+    │                      │                      │<────────────────────│
+    │                      │                      │                     │
+    │                      │  200 OK              │                     │
+    │                      │  "Task created"      │                     │
+    │                      │<─────────────────────│                     │
+    │  Toast: success      │                      │                     │
+    │<─────────────────────│                      │                     │
+```
+
+### 3. Authentication Middleware Flow (Every Protected Request)
+
+```
+┌─────────────┐          ┌──────────────┐          ┌──────────┐
+│ Incoming     │          │ protectRoute │          │ Supabase │
+│ HTTP Request │          │ Middleware   │          │ Postgres │
+└──────┬──────┘          └──────┬───────┘          └────┬─────┘
+       │ req.cookies.token      │                       │
+       │───────────────────────>│                       │
+       │                        │                       │
+       │                  token exists?                  │
+       │                  ┌─────┴─────┐                 │
+       │                  │           │                  │
+       │                 YES          NO                 │
+       │                  │           │                  │
+       │                  │     401 Unauthorized         │
+       │                  │           │                  │
+       │            jwt.verify()      │                  │
+       │            with JWT_SECRET   │                  │
+       │                  │                              │
+       │            SELECT is_admin,                     │
+       │            email FROM users                     │
+       │            WHERE _id = userId                   │
+       │                  │─────────────────────────────>│
+       │                  │  { email, is_admin }         │
+       │                  │<─────────────────────────────│
+       │                  │                              │
+       │            Set req.user = {                     │
+       │              email, isAdmin,                    │
+       │              userId                             │
+       │            }                                    │
+       │                  │                              │
+       │            next() ──> Route Handler             │
+       │                                                 │
+```
+
+---
+
+## API Documentation
+
+Base URL: `/api`
+
+### Authentication & Authorization Middleware
+
+| Middleware | Description |
+| :--- | :--- |
+| `protectRoute` | Verifies the JWT cookie on every request. Extracts `userId`, `email`, and `isAdmin` from the token and attaches them to `req.user`. Returns `401` if the token is missing or invalid. |
+| `isAdminRoute` | Runs after `protectRoute`. Checks `req.user.isAdmin` — if `false`, returns `401 Not authorized as admin`. |
+
+### User Routes (`/api/user`)
+
+| Method | Endpoint | Description | Auth | Request Body / Params | Success Response |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| `POST` | `/register` | Register a new user account | Public | `{ name, email, password, role, title, isAdmin }` | `201` — User object + JWT cookie set |
+| `POST` | `/login` | Authenticate and issue JWT | Public | `{ email, password }` | `200` — User object + JWT cookie set |
+| `POST` | `/logout` | Clear the JWT cookie | Public | — | `200` — `{ message: "Logged out successfully" }` |
+| `GET` | `/get-team?search=` | Get list of all team members (searchable) | Admin | Query: `search` (optional) | `201` — Array of user objects |
+| `GET` | `/notifications` | Get unread notifications for the logged-in user | Private | — | `200` — Array of notice objects |
+| `GET` | `/get-status` | Get user task status statistics | Admin | — | `200` — Array of users with task data |
+| `PUT` | `/profile` | Update user profile (name, title, role) | Private | `{ _id, name, title, role }` | `201` — `{ status, message, user }` |
+| `PUT` | `/read-noti?isReadType=&id=` | Mark notification(s) as read | Private | Query: `isReadType` ("all" or single), `id` | `201` — `{ status, message }` |
+| `PUT` | `/change-password` | Change the logged-in user's password | Private | `{ password }` | `201` — `{ status, message }` |
+| `PUT` | `/:id` | Activate or deactivate a user account | Admin | Params: `id` — Body: `{ isActive }` | `201` — `{ status, message }` |
+| `DELETE` | `/:id` | Permanently delete a user account | Admin | Params: `id` | `200` — `{ status, message }` |
+
+### Task Routes (`/api/task`)
+
+| Method | Endpoint | Description | Auth | Request Body / Params | Success Response |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| `POST` | `/create` | Create a new task and notify team | Admin | `{ title, team, stage, date, priority, assets, links, description }` | `200` — `{ status, task, message }` |
+| `POST` | `/duplicate/:id` | Duplicate an existing task | Admin | Params: `id` | `200` — `{ status, message }` |
+| `POST` | `/activity/:id` | Post a comment/activity to a task | Private | Params: `id` — Body: `{ type, activity }` | `200` — `{ status, message }` |
+| `GET` | `/dashboard` | Get dashboard statistics (task counts, priority chart, recent tasks) | Private | — | `200` — `{ totalTasks, last10Task, users, tasks, graphData }` |
+| `GET` | `/?stage=&isTrashed=&search=` | Get filtered and sorted list of tasks | Private | Query: `stage`, `isTrashed`, `search` | `200` — `{ status, tasks[] }` |
+| `GET` | `/:id` | Get full details of a single task | Private | Params: `id` | `200` — `{ status, task }` |
+| `PUT` | `/create-subtask/:id` | Add a subtask to an existing task | Admin | Params: `id` — Body: `{ title, tag, date }` | `200` — `{ status, message }` |
+| `PUT` | `/update/:id` | Update task details | Admin | Params: `id` — Body: `{ title, date, team, stage, priority, assets, links, description }` | `200` — `{ status, message }` |
+| `PUT` | `/change-stage/:id` | Change the stage of a task (todo/in progress/completed) | Private | Params: `id` — Body: `{ stage }` | `200` — `{ status, message }` |
+| `PUT` | `/change-status/:taskId/:subTaskId` | Toggle a subtask's completion status | Private | Params: `taskId`, `subTaskId` — Body: `{ status }` | `200` — `{ status, message }` |
+| `PUT` | `/:id` | Move a task to the trash | Admin | Params: `id` | `200` — `{ status, message }` |
+| `DELETE` | `/delete-restore/:id?` | Permanently delete or restore trashed tasks | Admin | Params: `id` (optional) — Query: `actionType` (`delete`, `deleteAll`, `restore`, `restoreAll`) | `200` — `{ status, message }` |
+
+---
+
+## Database Schema
+
+All tables are stored in **PostgreSQL** via **Supabase**. The schema is defined in `server/schema.sql`.
+
+### Entity Relationship Diagram
+
+```mermaid
+erDiagram
+    USERS {
+        UUID _id PK "Auto-generated (uuid_generate_v4)"
+        TEXT name "NOT NULL"
+        TEXT title "NOT NULL"
+        TEXT role "NOT NULL"
+        TEXT email "UNIQUE, NOT NULL"
+        TEXT password "Hashed with bcryptjs"
+        BOOLEAN is_admin "DEFAULT FALSE"
+        BOOLEAN is_active "DEFAULT TRUE"
+        UUID_ARRAY tasks "Array of task IDs"
+        TIMESTAMPTZ created_at "DEFAULT NOW()"
+    }
+
+    TASKS {
+        UUID _id PK "Auto-generated (uuid_generate_v4)"
+        TEXT title "NOT NULL"
+        TIMESTAMPTZ date "DEFAULT NOW()"
+        TEXT priority "high | medium | normal | low"
+        TEXT stage "todo | in progress | completed"
+        TEXT description "Optional"
+        BOOLEAN is_trashed "DEFAULT FALSE"
+        TEXT_ARRAY assets "Image URLs from Supabase Storage"
+        TEXT_ARRAY links "Related links"
+        UUID_ARRAY team "Array of assigned user IDs"
+        JSONB activities "Activity logs"
+        JSONB subtasks "Subtask items"
+        TIMESTAMPTZ created_at "DEFAULT NOW()"
+    }
+
+    NOTICES {
+        UUID _id PK "Auto-generated (uuid_generate_v4)"
+        TEXT text "Notification message"
+        UUID task FK "References tasks(_id)"
+        UUID_ARRAY team "Array of notified user IDs"
+        UUID_ARRAY is_read "Array of user IDs who read"
+        TIMESTAMPTZ created_at "DEFAULT NOW()"
+    }
+
+    USERS ||--o{ TASKS : "assigned to (via tasks[] array)"
+    USERS ||--o{ NOTICES : "receives (via team[] array)"
+    TASKS ||--o{ NOTICES : "triggers (task FK)"
+    USERS }o--o{ TASKS : "belongs to team (via team[] array)"
+```
+
+### `users` Table
+
+| Column | Type | Description |
+| :--- | :--- | :--- |
+| `_id` | `UUID` (PK) | Auto-generated unique identifier |
+| `name` | `TEXT` | Full name of the user |
+| `title` | `TEXT` | Job title |
+| `role` | `TEXT` | Role within the organization |
+| `email` | `TEXT` (UNIQUE) | Email address (used for login) |
+| `password` | `TEXT` | Hashed password (bcryptjs) |
+| `is_admin` | `BOOLEAN` | Whether the user has admin privileges |
+| `is_active` | `BOOLEAN` | Whether the account is active |
+| `tasks` | `UUID[]` | Array of assigned task IDs |
+| `created_at` | `TIMESTAMPTZ` | Account creation timestamp |
+
+### `tasks` Table
+
+| Column | Type | Description |
+| :--- | :--- | :--- |
+| `_id` | `UUID` (PK) | Auto-generated unique identifier |
+| `title` | `TEXT` | Task title |
+| `date` | `TIMESTAMPTZ` | Task due date |
+| `priority` | `TEXT` | `high`, `medium`, `normal`, or `low` |
+| `stage` | `TEXT` | `todo`, `in progress`, or `completed` |
+| `description` | `TEXT` | Task description |
+| `is_trashed` | `BOOLEAN` | Soft-delete flag |
+| `assets` | `TEXT[]` | Array of uploaded image URLs |
+| `links` | `TEXT[]` | Array of related links |
+| `team` | `UUID[]` | Array of assigned user IDs |
+| `activities` | `JSONB` | JSON array of activity logs `[{ type, activity, by, date }]` |
+| `subtasks` | `JSONB` | JSON array of subtasks `[{ _id, title, date, tag, isCompleted }]` |
+| `created_at` | `TIMESTAMPTZ` | Task creation timestamp |
+
+### `notices` Table
+
+| Column | Type | Description |
+| :--- | :--- | :--- |
+| `_id` | `UUID` (PK) | Auto-generated unique identifier |
+| `text` | `TEXT` | Notification message |
+| `task` | `UUID` (FK) | References `tasks(_id)` with `ON DELETE CASCADE` |
+| `team` | `UUID[]` | Array of user IDs who should receive this notice |
+| `is_read` | `UUID[]` | Array of user IDs who have read this notice |
+| `created_at` | `TIMESTAMPTZ` | Notice creation timestamp |
+
+---
+
+## Project Setup
+
+### Prerequisites
+
+- **Node.js** (v18+ recommended)
+- **npm**
+- A **Supabase** account ([https://supabase.com](https://supabase.com))
+
+---
+
+### 1. Clone the Repository
+
+```bash
+git clone <repository-url>
+cd ethara-ai
+```
+
+### 2. Set Up Supabase
+
+1. Go to [https://supabase.com](https://supabase.com) and create a new project.
+2. Wait for the database to provision.
+3. Navigate to **Settings > API** and copy your **Project URL** and **API Key (anon/service role)**.
+4. Go to the **SQL Editor** in your Supabase dashboard.
+5. Copy the contents of `server/schema.sql` and execute it. This creates the `users`, `tasks`, and `notices` tables.
+6. Go to **Storage** and create a **public** bucket named `Assets`.
+7. Under the bucket's **Policies**, create a policy that allows `INSERT` and `SELECT` for all users (for development).
+
+### 3. Server Setup
+
+```bash
+cd server
+npm install
+```
+
+Create a `.env` file inside the `server/` directory:
+
+```env
+SUPABASE_URL=https://your-project-id.supabase.co
+SUPABASE_KEY=your-supabase-api-key
+JWT_SECRET=any-long-random-secret-string
+PORT=8800
+NODE_ENV=development
+```
+
+Start the development server:
+
+```bash
+npm run dev
+```
+
+You should see:
+
+```
+Server listening on 8800
+Supabase connected successfully
+```
+
+### 4. Client Setup
+
+```bash
+cd client
+npm install
+```
+
+Create a `.env` file inside the `client/` directory:
+
+```env
+VITE_APP_BASE_URL=http://localhost:8800
+VITE_APP_SUPABASE_URL=https://your-project-id.supabase.co
+VITE_APP_SUPABASE_KEY=your-supabase-api-key
+```
+
+Start the development client:
+
+```bash
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+---
+
+## Folder Structure
+
+```
+ethara-ai/
+├── README.md
+│
+├── server/
+│   ├── .env                    # Environment variables (Supabase, JWT, Port)
+│   ├── index.js                # Express app entry point
+│   ├── schema.sql              # PostgreSQL table definitions for Supabase
+│   ├── package.json
+│   │
+│   ├── controllers/
+│   │   ├── userController.js   # Auth, profile, team, notifications logic
+│   │   └── taskController.js   # CRUD tasks, subtasks, activities, dashboard
+│   │
+│   ├── middleware/
+│   │   ├── authMiddleware.js   # JWT verification (protectRoute, isAdminRoute)
+│   │   └── errorMiddleware.js  # Global error handler + 404 handler
+│   │
+│   ├── routes/
+│   │   ├── index.js            # Root router (/api)
+│   │   ├── userRoute.js        # /api/user/* endpoints
+│   │   └── taskRoute.js        # /api/task/* endpoints
+│   │
+│   └── utils/
+│       ├── index.js            # JWT creation + cookie config
+│       └── supabase.js         # Supabase client initialization
+│
+├── client/
+│   ├── .env                    # Client environment variables
+│   ├── vite.config.js          # Vite config with API proxy
+│   ├── package.json
+│   │
+│   └── src/
+│       ├── App.jsx             # Root component with routing
+│       ├── main.jsx            # React DOM entry
+│       ├── index.css           # Global styles
+│       │
+│       ├── pages/
+│       │   ├── Login.jsx       # Login page
+│       │   ├── Signup.jsx      # Registration page
+│       │   ├── Dashboard.jsx   # Dashboard with stats and charts
+│       │   ├── Tasks.jsx       # Task list (filtered by stage)
+│       │   ├── TaskDetail.jsx  # Single task detail view
+│       │   ├── Users.jsx       # Team management (Admin)
+│       │   ├── Trash.jsx       # Trashed tasks management (Admin)
+│       │   └── Status.jsx      # User task status overview
+│       │
+│       ├── components/         # Reusable UI components (Sidebar, Navbar, Modals, etc.)
+│       │
+│       ├── redux/
+│       │   └── slices/
+│       │       ├── apiSlice.js          # RTK Query base config
+│       │       ├── authSlice.js         # Auth state (user, token)
+│       │       └── api/
+│       │           ├── authApiSlice.js  # Login, Register, Logout mutations
+│       │           ├── taskApiSlice.js  # All task CRUD queries/mutations
+│       │           └── userApiSlice.js  # User management queries/mutations
+│       │
+│       └── utils/
+│           ├── contants.js     # API route constants
+│           ├── index.js        # Helper utilities
+│           └── supabase.js     # Frontend Supabase client (for Storage)
+```
+
+---
+
+## Technologies Used
+
+| Layer | Technology | Purpose |
+| :--- | :--- | :--- |
+| **Frontend** | React 18 (Vite) | UI framework |
+| | Redux Toolkit + RTK Query | State management & API caching |
+| | Tailwind CSS | Styling |
+| | Headless UI | Accessible UI primitives (modals, transitions) |
+| | React Router v6 | Client-side routing |
+| | React Hook Form | Form validation |
+| | Recharts | Dashboard charts |
+| | Sonner | Toast notifications |
+| **Backend** | Node.js + Express.js | REST API server |
+| | jsonwebtoken (JWT) | Authentication tokens |
+| | bcryptjs | Password hashing |
+| | cookie-parser | HTTP cookie parsing |
+| | express-async-handler | Async error handling |
+| **Database** | PostgreSQL (Supabase) | Relational data storage |
+| **Storage** | Supabase Storage | Task image/asset uploads |
