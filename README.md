@@ -23,34 +23,33 @@ Each user should have a role (Admin or Member), and tasks should be manageable w
 ## High-Level Architecture
 
 ```mermaid
-flowchart TB
-    subgraph CLIENT["CLIENT — React + Vite :3000"]
+flowchart TD
+    subgraph Client ["Client (React + Vite)"]
         direction TB
-        Pages["Pages\nLogin | Signup | Dashboard\nTasks | Trash | Users"]
-        Components["Components\nSidebar | Navbar | AddTask\nTaskCard | UserList"]
-        Redux["Redux Toolkit\n+ RTK Query"]
-        SupaClient["Supabase Client\nStorage Only"]
+        Pages["Pages (Login, Dashboard, Tasks...)"]
+        Comps["Components (Sidebar, Modals...)"]
+        Redux["Redux Toolkit (State & API Cache)"]
+        SupaClient["Supabase Client (Direct Storage)"]
     end
 
-    subgraph SERVER["SERVER — Node.js + Express :8800"]
+    subgraph Server ["Server (Node.js + Express)"]
         direction TB
-        Routes["Routes\n/api/user | /api/task"]
-        Controllers["Controllers\nuserController | taskController"]
-        Middleware["Middleware\nprotectRoute | isAdminRoute\ncookieParser | errorHandler"]
-        SupaSDK["Supabase JS SDK\nDatabase Client"]
-        Routes --> Controllers
-        Controllers --> SupaSDK
-        Middleware --> Controllers
+        Routes["API Routes (/user, /task)"]
+        Controllers["Controllers (Business Logic)"]
+        Middleware["Middleware (Auth, Errors)"]
+        SupaSDK["Supabase JS SDK"]
+        
+        Routes --> Middleware --> Controllers --> SupaSDK
     end
 
-    subgraph SUPABASE["SUPABASE CLOUD"]
-        direction LR
-        Postgres[("PostgreSQL\nusers | tasks | notices")]
-        Storage[("Supabase Storage\nBucket: Assets")]
+    subgraph Supabase ["Supabase Cloud"]
+        direction TB
+        Postgres[("PostgreSQL\n(users, tasks, notices)")]
+        Storage[("Storage\n(Assets Bucket)")]
     end
 
-    Redux -- "REST API Calls via Vite Proxy" --> Routes
-    SupaClient -- "Direct File Upload" --> Storage
+    Redux -- "REST API (Vite Proxy)" --> Routes
+    SupaClient -- "Image Uploads" --> Storage
     SupaSDK -- "Database Queries" --> Postgres
 ```
 
@@ -62,112 +61,71 @@ flowchart TB
 
 ```mermaid
 sequenceDiagram
-    actor User as Browser
-    participant Client as React Client / Redux
+    participant Browser
+    participant Client as React Client (Redux)
     participant Server as Express Server
-    participant DB as Supabase PostgreSQL
+    participant DB as Supabase Postgres
 
-    User->>Client: Fill signup form and submit
+    Browser->>Client: Fill signup form
     Client->>Server: POST /api/user/register
-    Server->>DB: SELECT * FROM users WHERE email = ?
-    DB-->>Server: null - no existing user
-    Server->>Server: Hash password with bcryptjs
-    Server->>DB: INSERT INTO users
-    DB-->>Server: new user object
-    Server->>Server: Sign JWT token
-    Server-->>Client: 201 + Set-Cookie token HttpOnly
-    Client->>Client: dispatch setCredentials
-    Client-->>User: Redirect to /dashboard
+    Server->>DB: Check if email exists
+    DB-->>Server: { data: null }
+    Server->>Server: Hash password (bcryptjs)
+    Server->>DB: INSERT new user
+    DB-->>Server: { data: user }
+    Server->>Server: Sign JWT token, Set HttpOnly cookie
+    Server-->>Client: 200 OK + user data + Set-Cookie: token
+    Client->>Client: dispatch(setCredentials(user))
+    Client-->>Browser: Redirect to /
 ```
 
 ### 2. Create Task Flow (Admin Only)
 
-```
-┌────────┐          ┌─────────────┐          ┌──────────┐          ┌──────────┐
-│ Browser│          │ React Client│          │  Express  │          │ Supabase │
-│        │          │ (Redux/RTK) │          │  Server   │          │ Postgres │
-└───┬────┘          └──────┬──────┘          └────┬─────┘          └────┬─────┘
-    │  Click "Create Task" │                      │                     │
-    │  Fill form + Submit  │                      │                     │
-    │─────────────────────>│                      │                     │
-    │                      │                      │                     │
-    │                      │ (If images attached) │                     │
-    │                      │ Upload to Supabase   │                     │
-    │                      │ Storage "Assets"     │                     │
-    │                      │ bucket               │                     │
-    │                      │──────────────────────────────────────────>│
-    │                      │  { publicUrl }        │                    │
-    │                      │<─────────────────────────────────────────│
-    │                      │                      │                     │
-    │                      │ POST /api/task/create │                     │
-    │                      │ + Cookie: token       │                     │
-    │                      │─────────────────────>│                     │
-    │                      │                      │                     │
-    │                      │                      │── protectRoute ──>  │
-    │                      │                      │   Verify JWT        │
-    │                      │                      │   Fetch user from DB│
-    │                      │                      │────────────────────>│
-    │                      │                      │<────────────────────│
-    │                      │                      │                     │
-    │                      │                      │── isAdminRoute ──>  │
-    │                      │                      │   Check isAdmin     │
-    │                      │                      │                     │
-    │                      │                      │ INSERT task         │
-    │                      │                      │────────────────────>│
-    │                      │                      │ { data: task }      │
-    │                      │                      │<────────────────────│
-    │                      │                      │                     │
-    │                      │                      │ INSERT notice       │
-    │                      │                      │────────────────────>│
-    │                      │                      │<────────────────────│
-    │                      │                      │                     │
-    │                      │                      │ UPDATE user.tasks[] │
-    │                      │                      │ (for each team      │
-    │                      │                      │  member)            │
-    │                      │                      │────────────────────>│
-    │                      │                      │<────────────────────│
-    │                      │                      │                     │
-    │                      │  200 OK              │                     │
-    │                      │  "Task created"      │                     │
-    │                      │<─────────────────────│                     │
-    │  Toast: success      │                      │                     │
-    │<─────────────────────│                      │                     │
+```mermaid
+sequenceDiagram
+    participant Browser
+    participant Client as React Client
+    participant SupaStorage as Supabase Storage
+    participant Server as Express Server
+    participant DB as Supabase Postgres
+
+    Browser->>Client: Click "Create Task", Fill form + Submit
+    opt If images attached
+        Client->>SupaStorage: Upload to "Assets" bucket
+        SupaStorage-->>Client: { publicUrl }
+    end
+    Client->>Server: POST /api/task/create + Cookie: token
+    Server->>Server: protectRoute (Verify JWT, Fetch user)
+    Server->>Server: isAdminRoute (Check isAdmin)
+    Server->>DB: INSERT task
+    DB-->>Server: { data: task }
+    Server->>DB: INSERT notice
+    DB-->>Server: OK
+    Server->>DB: UPDATE user.tasks[] (for each team member)
+    DB-->>Server: OK
+    Server-->>Client: 200 OK "Task created"
+    Client-->>Browser: Toast: success
 ```
 
 ### 3. Authentication Middleware Flow (Every Protected Request)
 
-```
-┌─────────────┐          ┌──────────────┐          ┌──────────┐
-│ Incoming     │          │ protectRoute │          │ Supabase │
-│ HTTP Request │          │ Middleware   │          │ Postgres │
-└──────┬──────┘          └──────┬───────┘          └────┬─────┘
-       │ req.cookies.token      │                       │
-       │───────────────────────>│                       │
-       │                        │                       │
-       │                  token exists?                  │
-       │                  ┌─────┴─────┐                 │
-       │                  │           │                  │
-       │                 YES          NO                 │
-       │                  │           │                  │
-       │                  │     401 Unauthorized         │
-       │                  │           │                  │
-       │            jwt.verify()      │                  │
-       │            with JWT_SECRET   │                  │
-       │                  │                              │
-       │            SELECT is_admin,                     │
-       │            email FROM users                     │
-       │            WHERE _id = userId                   │
-       │                  │─────────────────────────────>│
-       │                  │  { email, is_admin }         │
-       │                  │<─────────────────────────────│
-       │                  │                              │
-       │            Set req.user = {                     │
-       │              email, isAdmin,                    │
-       │              userId                             │
-       │            }                                    │
-       │                  │                              │
-       │            next() ──> Route Handler             │
-       │                                                 │
+```mermaid
+sequenceDiagram
+    participant Request as Incoming HTTP Request
+    participant Middleware as protectRoute
+    participant DB as Supabase Postgres
+    participant Route as Route Handler
+
+    Request->>Middleware: req.cookies.token
+    alt token missing
+        Middleware-->>Request: 401 Unauthorized
+    else token exists
+        Middleware->>Middleware: jwt.verify(token, JWT_SECRET)
+        Middleware->>DB: SELECT is_admin, email FROM users WHERE _id = userId
+        DB-->>Middleware: { email, is_admin }
+        Middleware->>Middleware: Set req.user = { email, isAdmin, userId }
+        Middleware->>Route: next()
+    end
 ```
 
 ---
