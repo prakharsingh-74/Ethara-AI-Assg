@@ -3,7 +3,8 @@ import jwt from "jsonwebtoken";
 import { supabase } from "../utils/supabase.js";
 
 const protectRoute = asyncHandler(async (req, res, next) => {
-  let token = req.cookies.token;
+  let token = req.cookies?.token;
+  console.log("Token received:", token);
 
   if (token) {
     try {
@@ -25,7 +26,7 @@ const protectRoute = asyncHandler(async (req, res, next) => {
 
       next();
     } catch (error) {
-      console.error(error);
+      console.error("Auth Middleware Error:", error.message);
       return res
         .status(401)
         .json({ status: false, message: "Not authorized. Try login again." });
