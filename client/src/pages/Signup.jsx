@@ -3,11 +3,11 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, Link } from "react-router-dom";
 import { toast } from "sonner";
 import { Button, Loading, Textbox } from "../components";
-import { useLoginMutation } from "../redux/slices/api/authApiSlice";
+import { useRegisterMutation } from "../redux/slices/api/authApiSlice";
 import { setCredentials } from "../redux/slices/authSlice";
 import { useEffect } from "react";
 
-const Login = () => {
+const Signup = () => {
   const { user } = useSelector((state) => state.auth);
   const {
     register,
@@ -17,12 +17,13 @@ const Login = () => {
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const [login, { isLoading }] = useLoginMutation();
+  const [registerUser, { isLoading }] = useRegisterMutation();
 
-  const handleLogin = async (data) => {
+  const handleSignup = async (data) => {
     try {
-      const res = await login(data).unwrap();
+      const res = await registerUser({ ...data, isAdmin: data.isAdmin }).unwrap();
 
+      // Dispatch setCredentials to log them in directly after successful registration
       dispatch(setCredentials(res));
       navigate("/");
     } catch (err) {
@@ -35,7 +36,7 @@ const Login = () => {
   }, [user]);
 
   return (
-    <div className='w-full min-h-screen flex items-center justify-center flex-col lg:flex-row bg-[#f3f4f6] dark:bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[#302943] via-slate-900 to-black'>
+    <div className='w-full min-h-screen flex items-center justify-center flex-col lg:flex-row bg-[#f3f4f6] dark:bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[#302943] via-slate-900 to-black py-10'>
       <div className='w-full md:w-auto flex gap-0 md:gap-40 flex-col md:flex-row items-center justify-center'>
         <div className='h-full w-full lg:w-2/3 flex flex-col items-center justify-center'>
           <div className='w-full md:max-w-lg 2xl:max-w-3xl flex flex-col items-center justify-center gap-5 md:gap-y-10 2xl:-mt-20'>
@@ -55,18 +56,51 @@ const Login = () => {
 
         <div className='w-full md:w-1/3 p-4 md:p-1 flex flex-col justify-center items-center'>
           <form
-            onSubmit={handleSubmit(handleLogin)}
-            className='form-container w-full md:w-[400px] flex flex-col gap-y-8 bg-white dark:bg-slate-900 px-10 pt-14 pb-14'
+            onSubmit={handleSubmit(handleSignup)}
+            className='form-container w-full md:w-[400px] flex flex-col gap-y-6 bg-white dark:bg-slate-900 px-10 pt-10 pb-10'
           >
             <div>
               <p className='text-blue-600 text-3xl font-bold text-center'>
-                Welcome back!
+                Create an Account
               </p>
               <p className='text-center text-base text-gray-700 dark:text-gray-500'>
-                Keep all your credetials safe!
+                Get started with your free account!
               </p>
             </div>
-            <div className='flex flex-col gap-y-5'>
+            <div className='flex flex-col gap-y-4'>
+              <Textbox
+                placeholder='John Doe'
+                type='text'
+                name='name'
+                label='Full Name'
+                className='w-full rounded-full'
+                register={register("name", {
+                  required: "Name is required!",
+                })}
+                error={errors.name ? errors.name.message : ""}
+              />
+              <Textbox
+                placeholder='Developer'
+                type='text'
+                name='title'
+                label='Job Title'
+                className='w-full rounded-full'
+                register={register("title", {
+                  required: "Job title is required!",
+                })}
+                error={errors.title ? errors.title.message : ""}
+              />
+              <Textbox
+                placeholder='Software Engineer'
+                type='text'
+                name='role'
+                label='Role'
+                className='w-full rounded-full'
+                register={register("role", {
+                  required: "Role is required!",
+                })}
+                error={errors.role ? errors.role.message : ""}
+              />
               <Textbox
                 placeholder='you@example.com'
                 type='email'
@@ -89,23 +123,34 @@ const Login = () => {
                 })}
                 error={errors.password ? errors.password?.message : ""}
               />
-              <span className='text-sm text-gray-600 hover:underline cursor-pointer'>
-                Forget Password?
-              </span>
+              
+              {/* Added for Demo Purposes */}
+              <div className='flex items-center gap-2'>
+                <input
+                  type='checkbox'
+                  id='isAdmin'
+                  {...register("isAdmin")}
+                  className='w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600'
+                />
+                <label htmlFor='isAdmin' className='text-sm font-medium text-gray-900 dark:text-gray-300'>
+                  Register as Admin (For Demo Purposes)
+                </label>
+              </div>
+
             </div>
             {isLoading ? (
               <Loading />
             ) : (
               <Button
                 type='submit'
-                label='Log in'
-                className='w-full h-10 bg-blue-700 text-white rounded-full'
+                label='Sign up'
+                className='w-full h-10 bg-blue-700 text-white rounded-full mt-2'
               />
             )}
             <p className='text-sm text-center text-gray-600 dark:text-gray-400 mt-2'>
-              Don't have an account?{" "}
-              <Link to='/sign-up' className='text-blue-600 hover:underline'>
-                Sign up
+              Already have an account?{" "}
+              <Link to='/log-in' className='text-blue-600 hover:underline'>
+                Log in
               </Link>
             </p>
           </form>
@@ -115,4 +160,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default Signup;
